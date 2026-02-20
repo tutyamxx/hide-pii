@@ -3,12 +3,13 @@ const dataPatterns = {
     creditCard: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/g,
     secretToken: /((?:api[_-]?key|auth[_-]?token|secret|password|bearer|pwd)[-_\s:="']+)(.+?)(?=['"]|$|\s)/gi,
     connectionString: /(mongodb(?:\+srv)?|postgres|mysql|redis):\/\/[^@\s]+:[^@\s]+@[^\s]+/gi,
-    ipv4: /\b(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g
+    ipv4: /\b(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g,
+    sensitiveKeys: /(password|pass|pwd|token|auth|api[_-]?key|secret|credentials|bearer|session|access[_-]?token|refresh[_-]?token|private[_-]?key|key)/i
 };
 
 /**
  * hide-pii - 🎭 A zero-dependency, recursive PII (Personally Identifiable Information) masker for modern JavaScript. Keep sensitive data out of your logs and don't leak information!
- * @version: v1.0.2
+ * @version: v1.0.3
  * @link: https://github.com/tutyamxx/hide-pii
  * @license: MIT
  **/
@@ -23,35 +24,20 @@ const dataPatterns = {
  * @param {string} [maskChar='*'] - Character used for masking.
  * @returns {string} Obfuscated string.
  */
-const maskString = (str = '', maskChar = '*') => {
-    let sanitized = str?.toString() ?? '';
+const maskString = (input = '', maskCharacter = '*') => {
+    const content = input?.toString() ?? '';
+    const char = maskCharacter ?? '*';
 
-    // --| Apply email masking with partial preservation
-    sanitized = sanitized?.replace(dataPatterns?.email, (match) => {
-        const [name, domain] = match?.split('@');
-        const visible = name?.slice(0, 2);
-        const filler = (maskChar ?? '*')?.repeat(5);
+    return content?.replace(dataPatterns.email, (emailMatch) => {
+        const [localPart, domain] = emailMatch?.split('@');
+        const visiblePrefix = localPart?.slice(0, 2);
 
-        return `${visible}${filler}@${domain}`;
-    });
-
-    // --| Apply masking for secret tokens (Capturing groups preserve prefix context like "Bearer ")
-    sanitized = sanitized?.replace(dataPatterns?.secretToken, (_match, prefix) => {
-        const filler = (maskChar ?? '*')?.repeat(10);
-
-        return `${prefix}${filler}`;
-    });
-
-    // --| Apply general masking for other sensitive patterns
-    const otherPatterns = ['creditCard', 'connectionString', 'ipv4'];
-
-    for (const pattern of otherPatterns) {
-        sanitized = sanitized?.replace(dataPatterns?.[pattern] ?? '', (match) => {
-            return (maskChar ?? '*')?.repeat(match?.length ?? 0);
-        });
-    }
-
-    return sanitized;
+        return `${visiblePrefix}${char?.repeat(5)}@${domain}`;
+    })
+    ?.replace(dataPatterns.secretToken, (_fullMatch, tokenPrefix) => `${tokenPrefix}${char?.repeat(10)}`)
+    ?.replace(dataPatterns.creditCard, (cardMatch) => char?.repeat(cardMatch?.length))
+    ?.replace(dataPatterns.connectionString, (uriMatch) => char?.repeat(uriMatch?.length))
+    ?.replace(dataPatterns.ipv4, (ipMatch) => char?.repeat(ipMatch?.length));
 };
 
 /**
@@ -77,24 +63,24 @@ const maskString = (str = '', maskChar = '*') => {
  * A new structure with masked values.
  */
 const hidePii = (data, options = {}) => {
+    const placeholder = options?.placeholder ?? '[REDACTED]';
+
     // --| If it's not an object (or it's null), process as a simple string
     if (typeof data !== 'object' || data === null) {
-        return maskString(data?.toString() ?? '');
+        return maskString(data?.toString() ?? '', options?.maskChar);
     }
 
-    const maskedOutput = Array.isArray(data) ? [] : {};
+    // --| Determine if we are reducing into an Array or an Object
+    const initialAccumulator = Array.isArray(data) ? [] : {};
 
-    for (const [key, value] of Object.entries(data)) {
-        // --| Check if the property name itself is suspicious
-        const isSecretKey = /(password|pass|pwd|token|auth|api[_-]?key|secret|credentials|bearer|session|access[_-]?token|refresh[_-]?token|private[_-]?key|key)/i.test(key);
+    return Object.entries(data).reduce((processedData, [key, value]) => {
+        const isSensitiveKey = dataPatterns.sensitiveKeys.test(key);
 
         // --| Use placeholder from options or default to '[REDACTED]'
-        maskedOutput[key] = isSecretKey
-            ? (options?.placeholder ?? '[REDACTED]')
-            : hidePii(value, options);
-    }
+        processedData[key] = isSensitiveKey ? placeholder : hidePii(value, options);
 
-    return maskedOutput;
+        return processedData;
+    }, initialAccumulator);
 };
 
 // --| CommonJS export
