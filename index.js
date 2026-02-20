@@ -9,7 +9,7 @@ const dataPatterns = {
 
 /**
  * hide-pii - 🎭 A zero-dependency, recursive PII (Personally Identifiable Information) masker for modern JavaScript. Keep sensitive data out of your logs and don't leak information!
- * @version: v1.0.3
+ * @version: v1.0.4
  * @link: https://github.com/tutyamxx/hide-pii
  * @license: MIT
  **/

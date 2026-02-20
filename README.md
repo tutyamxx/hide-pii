@@ -16,15 +16,18 @@
 
 # ✨ Features
 
-| Feature                   | Description                                                           | Example Input                          | Example Output                            |
-| ------------------------- | --------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------- |
-| Sensitive Key Masking     | Replaces values for keys like `password`, `token`, `secret`, `apiKey` | `{ password: "mySecret123" }`          | `{ password: "[REDACTED]" }`              |
-| Email Obfuscation         | Masks email username while preserving domain                          | `"john.doe@test.com"`                  | `"jo*****@test.com"`                      |
-| Credit Card Masking       | Detects and masks card numbers                                        | `"4111111111111111"`                   | `"**********"`                            |
-| Secret Token Masking      | Masks API keys, bearer tokens, auth tokens                            | `"Bearer abcdefghijklmnop"`            | `"Bearer **********"`                     |
-| Connection String Masking | Masks credentials in DB URLs                                          | `"postgres://user:pass@host:5432/db"`  | `"**********"`                            |
-| IPv4 Address Masking      | Detects and masks IP addresses                                        | `"192.168.1.1"`                        | `"**********"`                            |
-| Recursive Traversal       | Automatically scans nested objects and arrays                         | `{ user: { email: "john@test.com" } }` | `{ user: { email: "jo*****@test.com" } }` |
+| Feature                   | Description                                                           | Example Input                                    | Example Output                                                 |
+| ------------------------- | --------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
+| Sensitive Key Masking     | Replaces values for keys like `password`, `token`, `secret`, `apiKey` | `{ password: "mySecret123" }`                    | `{ password: "[REDACTED]" }`                                   |
+| Email Obfuscation         | Masks email username while preserving domain                          | `"john.doe@test.com"`                            | `"jo*****@test.com"`                                           |
+| Credit Card Masking       | Detects and masks card numbers                                        | `"4111111111111111"`                             | `"**********"`                                                 |
+| Secret Token Masking      | Masks API keys, bearer tokens, auth tokens                            | `"Bearer abcdefghijklmnop"`                      | `"Bearer **********"`                                          |
+| Connection String Masking | Masks credentials in DB URLs                                          | `"postgres://user:pass@host:5432/db"`            | `"**********"`                                                 |
+| IPv4 Address Masking      | Detects and masks IP addresses                                        | `"192.168.1.1"`                                  | `"**********"`                                                 |
+| Recursive Traversal       | Automatically scans nested objects and arrays                         | `{ user: { email: "john@test.com" } }`           | `{ user: { email: "jo*****@test.com" } }`                      |
+| Custom mask character     | Allows changing the character used for masking (default: `*`)         | `{ email: "john@test.com" }, maskChar: "#" `     | `{ email: "jo#####@test.com" }`                                |
+| Placeholder Customization | Lets you choose the string used to replace sensitive keys             | `{ password: "1234" }, placeholder: "🔒"`        | `{ password: "🔒" }`                                           |
+| Array Support             | Masks data inside arrays as well                                      | `[ { email: "a@test.com" }, { password: "x" } ]` | `[ { email: "a*****@test.com" }, { password: "[REDACTED]" } ]` |
 
 ---
 
@@ -77,8 +80,8 @@ const payload = {
     }
 };
 
-// --| Add placeholder
-console.log(hidePii(payload, { placeholder: "🔒" }));
+// --| Add placeholder and a mask character
+console.log(hidePii(payload, { placeholder: "🔒", maskChar: "#" }));
 
 // --| OR default "[REDACTED]"
 console.log(hidePii(payload));
@@ -123,8 +126,8 @@ const payload = {
     }
 };
 
-// --| Add placeholder
-console.log(hidePii(payload, { placeholder: "🔒" }));
+// --| Add placeholder and a mask character
+console.log(hidePii(payload, { placeholder: "🔒", maskChar: "#" }));
 
 // --| OR default "[REDACTED]"
 console.log(hidePii(payload));
@@ -170,7 +173,7 @@ const payload = {
 };
 
 // --| Add placeholder
-const options: PiiMaskerOptions = { placeholder: "🔒" };
+const options: PiiMaskerOptions = { placeholder: "🔒", maskChar: "#" };
 const maskedWithEmoji = hidePii(payload, options);
 
 console.log(maskedWithEmoji);
@@ -179,7 +182,7 @@ console.log(maskedWithEmoji);
 console.log(hidePii(payload));
 ```
 
-## Output "[REDACTED]"
+## Output "[REDACTED]" with no mask character specified
 
 ```javascript
 {
@@ -205,23 +208,27 @@ console.log(hidePii(payload));
 }
 ```
 
-## Output custom placeholder
+## Output custom placeholder and custom mask character
 
 ```javascript
 {
   user: {
     id: 'usr_12345',
-    email: 'jo*****@test.com',
+    email: 'jo#####@test.com',
     password: '🔒',
-    profile: { ipv4: '**********', backupEmail: 'su*****@company.org' }
+    profile: { ipv4: '###########', backupEmail: 'su#####@company.org' }
   },
-  billing: { creditCard: '**********', backupCard: '**********' },
-  auth: { apiKey: '🔒', authToken: '🔒', bearer: 'Bearer **********0' },
-  infrastructure: { mongo: '**********', postgres: '**********', redis: '**********' },
+  billing: { creditCard: '################', backupCard: '################' },
+  auth: '🔒',
+  infrastructure: {
+    mongo: '#############################################',
+    postgres: '##########################################',
+    redis: '###################################'
+  },
   logs: [
-    'User jo*****@test.com logged in from ********',
-    'Attempt with card **********',
-    'Bearer **********0'
+    'User jo#####@test.com logged in from ########',
+    'Attempt with card ################',
+    'Bearer ##########'
   ],
   misc: { privateKey: '🔒', pwd: '🔒' }
 }

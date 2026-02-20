@@ -1,10 +1,16 @@
 export interface PiiMaskerOptions {
     /**
-     * Replacement value used when masking sensitive keys.
+     * Replacement value used when masking sensitive keys (e.g., password, token, secret, key).
      * @default "[REDACTED]"
      */
     placeholder?: string;
-}
+
+    /**
+     * Character used for masking sensitive patterns in string values (e.g., emails, credit cards, IPs, tokens).
+     * @default "*"
+     */
+    maskChar?: string;
+};
 
 /**
  * Recursively traverses an object or array and masks sensitive data.
