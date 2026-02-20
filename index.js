@@ -8,11 +8,10 @@ const dataPatterns = {
 
 /**
  * hide-pii - 🎭 A zero-dependency, recursive PII (Personally Identifiable Information) masker for modern JavaScript. Keep sensitive data out of your logs and don't leak information!
- * @version: v1.0.1
+ * @version: v1.0.2
  * @link: https://github.com/tutyamxx/hide-pii
  * @license: MIT
  **/
-
 
 /**
  * Masks sensitive patterns in a string.
@@ -37,10 +36,10 @@ const maskString = (str = '', maskChar = '*') => {
     });
 
     // --| Apply masking for secret tokens (Capturing groups preserve prefix context like "Bearer ")
-    sanitized = sanitized?.replace(dataPatterns?.secretToken, (_match, prefix, _secret, suffix) => {
+    sanitized = sanitized?.replace(dataPatterns?.secretToken, (_match, prefix) => {
         const filler = (maskChar ?? '*')?.repeat(10);
 
-        return `${prefix}${filler}${suffix ?? ''}`;
+        return `${prefix}${filler}`;
     });
 
     // --| Apply general masking for other sensitive patterns
@@ -48,7 +47,7 @@ const maskString = (str = '', maskChar = '*') => {
 
     for (const pattern of otherPatterns) {
         sanitized = sanitized?.replace(dataPatterns?.[pattern] ?? '', (match) => {
-            return (maskChar ?? '*')?.repeat(match?.length > 10 ? 10 : match?.length);
+            return (maskChar ?? '*')?.repeat(match?.length ?? 0);
         });
     }
 
@@ -87,7 +86,7 @@ const hidePii = (data, options = {}) => {
 
     for (const [key, value] of Object.entries(data)) {
         // --| Check if the property name itself is suspicious
-        const isSecretKey = /password|token|secret|key|pwd/i.test(key);
+        const isSecretKey = /(password|pass|pwd|token|auth|api[_-]?key|secret|credentials|bearer|session|access[_-]?token|refresh[_-]?token|private[_-]?key|key)/i.test(key);
 
         // --| Use placeholder from options or default to '[REDACTED]'
         maskedOutput[key] = isSecretKey

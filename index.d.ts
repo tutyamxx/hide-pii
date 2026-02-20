@@ -10,8 +10,7 @@ export interface PiiMaskerOptions {
  * Recursively traverses an object or array and masks sensitive data.
  *
  * - Masks email addresses in string values.
- * - Replaces values of sensitive keys such as:
- *   "password", "token", "secret", or "key".
+ * - Replaces values of sensitive keys such as: "password", "token", "secret", or "key".
  * - Traverses nested objects and arrays.
  * - Does NOT mutate the original input.
  *
