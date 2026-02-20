@@ -1,0 +1,47 @@
+{
+  "name": "hide-pii",
+  "version": "1.0.1",
+  "description": "🎭 A zero-dependency, recursive PII (Personally Identifiable Information) masker for modern JavaScript. Keep sensitive data out of your logs and don't leak information!",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    "require": "./index.js",
+    "import": "./index.js",
+    "types": "./index.d.ts"
+  },
+  "scripts": {
+    "test": "jest --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tutyamxx/hide-pii.git"
+  },
+  "keywords": [
+    "pii",
+    "mask",
+    "masking",
+    "redact",
+    "redaction",
+    "privacy",
+    "security",
+    "gdpr",
+    "compliance",
+    "sanitizer",
+    "logger",
+    "sensitive-data",
+    "obfuscate",
+    "zero-dependency",
+    "typescript"
+  ],
+  "author": "tuty",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tutyamxx/hide-pii/issues"
+  },
+  "homepage": "https://github.com/tutyamxx/hide-pii#readme",
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
+}
